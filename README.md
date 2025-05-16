@@ -1,13 +1,14 @@
-Tic-Tac-Bot
-A Reinforcement Learning Approach to Tic-Tac-Toe
-Tic-Tac-Bot is a Python implementation of the classic Tic-Tac-Toe game with a focus on AI learning techniques. The project features multiple agent types that play with different strategies, making it an excellent educational resource for studying reinforcement learning in simple game environments.# Tic-Tac-Bot
+# Tic-Tac-Bot  
 **A reinforcement-learning take on classic Tic-Tac-Toe**
 
-Tic-Tac-Bot is a small Python project that lets different kinds of agents—reinforcement-learning, minimax, random, or human—battle it out on a 3×3 board. Use it to tinker with reward functions, compare strategies, or just watch AIs trash-talk each other in silence.
+Tic-Tac-Bot is a Python implementation of Tic-Tac-Toe with multiple agent types—RL, minimax, random, or human. It’s designed to explore how simple learning agents can master a game with just a few rules and clever reward shaping.
+
+Use it to tinker with reward functions, compare strategies, or just watch AIs trash-talk each other in silence.
 
 ---
 
 ## Features
+
 - **Plug-and-play agents**  
   - **RL agent** (tabular Q-learning with ε-greedy)  
   - **Minimax solver**  
@@ -32,6 +33,7 @@ Tic-Tac-Bot is a small Python project that lets different kinds of agents—rein
 ---
 
 ## Quick Start
+
 ```bash
 # clone
 git clone https://github.com/yourname/tic-tac-bot.git
