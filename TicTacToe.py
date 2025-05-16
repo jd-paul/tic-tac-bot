@@ -621,66 +621,95 @@ class RLPlayer(Player) :
 
 	def getReward(self, board):
 		"""
-		Enhanced reward function that considers:
-		1. Win/Loss conditions
-		2. Potential winning moves
-		3. Blocking opponent's winning moves
-		4. Center and corner control
-		5. Game progression
+		Advanced reward function with strategic tactical considerations:
+		1. Win/Loss/Draw with proper incentive hierarchy
+		2. Fork creation and prevention
+		3. Strategic position control
+		4. Time-based reward adjustments
+		5. Defensive and offensive tactics
 
 		:param board: The tictactoe game board
 		:type board: TicTacToe
-		:return: Float between -10 and 10
+		:return: Float representing the reward value
 		"""
 		winner = board.getWinner()
 		
-		# Terminal state rewards
-		if winner is not None:
-			if winner.letter == self.letter:
-				return 10.0  # Win
-			elif winner.letter != self.letter:
-				return -10.0  # Loss
-			return 0.0  # Draw
+		# Terminal state rewards with enhanced differentiation
+		if board.isGameOver():
+			if winner is not None and winner.letter == self.letter:
+				# Win: higher reward for faster wins
+				return 10.0 + max(0, (9 - board.moveCount))  # Bonus for quick wins
+			elif winner is not None:
+				# Loss: clear negative reinforcement
+				return -10.0
+			else:
+				# Draw: positive but less than win (clear hierarchy)
+				return 2.0  # Significantly better than losing, worse than winning
 		
 		# Non-terminal state rewards
 		reward = 0.0
 		
-		# Reward for controlling center (position 4)
-		if board.board[4] == self.letter:
-			reward += 0.5
+		# Strategic position control
+		if board.board[4] == self.letter:  # Center
+			reward += 0.8
+		elif board.board[4] == self.opponent:
+			reward -= 0.6  # Penalty if opponent controls center
 		
-		# Reward for controlling corners (positions 0,2,6,8)
+		# Corners are strategically important
 		corners = [0, 2, 6, 8]
 		for corner in corners:
 			if board.board[corner] == self.letter:
 				reward += 0.3
+			elif board.board[corner] == self.opponent:
+				reward -= 0.2
 		
-		# Potential winning moves analysis
+		# Tactical analysis
 		winning_patterns = [
 			[0,1,2], [3,4,5], [6,7,8],  # Rows
 			[0,3,6], [1,4,7], [2,5,8],  # Columns
 			[0,4,8], [2,4,6]            # Diagonals
 		]
 		
+		my_two_in_a_row_count = 0
+		opponent_two_in_a_row_count = 0
+		
+		# Enhanced pattern analysis
 		for pattern in winning_patterns:
 			line = [board.board[i] for i in pattern]
-			# Reward for having two in a row with an open space
+			
+			# Offensive opportunities
 			if line.count(self.letter) == 2 and line.count('*') == 1:
-				reward += 1.0
-			# Penalty for opponent having two in a row
+				my_two_in_a_row_count += 1
+				reward += 1.5  # Strong incentive to create winning opportunities
+				
+			# Defensive necessities
 			elif line.count(self.opponent) == 2 and line.count('*') == 1:
-				reward -= 0.8
+				opponent_two_in_a_row_count += 1
+				reward -= 1.8  # Strong incentive to block opponent wins
+				
+			# Building potential (one marker with two empty spaces)
+			elif line.count(self.letter) == 1 and line.count('*') == 2:
+				reward += 0.3
+				
+			# Opponent building potential
+			elif line.count(self.opponent) == 1 and line.count('*') == 2:
+				reward -= 0.2
 		
-		# Scale reward based on game progression
-		move_count = board.moveCount
-		if move_count < 5:
-			reward *= 0.7  # Early game: focus on position
-		else:
-			reward *= 1.2  # Late game: emphasize tactical advantages
+		# Fork detection and prevention (having multiple winning paths)
+		if my_two_in_a_row_count >= 2:
+			reward += 3.0  # Major reward for creating a fork
+			
+		if opponent_two_in_a_row_count >= 2:
+			reward -= 3.5  # Stronger penalty for allowing opponent forks
 		
+		# Game progression weighting
+		if board.moveCount <= 2:  # Opening moves
+			reward *= 0.8  # Focus on strategic positioning early
+		elif board.moveCount >= 6:  # Late game
+			reward *= 1.4  # Emphasize tactical plays in late game
+			
 		return reward
-	
-	
+		
 class MINIPlayer(Player) :
 
 	"""
